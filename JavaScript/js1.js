@@ -11,6 +11,18 @@ function renderStars(rating) {
     return `<div class="stars">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</div>`;
 }
 
+// ================= Shared Helper: Language Card =================
+// FIX: extracted from 3 duplicate locations — now defined once
+function createLangCard(lang, targetUrl) {
+    const card = document.createElement("div");
+    card.className = "lang-card";
+    card.textContent = formatText(lang);
+    card.addEventListener("click", () => {
+        window.location.href = targetUrl;
+    });
+    return card;
+}
+
 // ================= Render Movie Card =================
 function renderMovieCard(movie, container) {
     const card = document.createElement("div");
@@ -37,7 +49,7 @@ function renderMovieCard(movie, container) {
 
 // ================= Render Main Page =================
 function renderMainPage() {
-    const staticSections = ["popular", "new", "web_series", "romantic_drama", "anime_Series", "action", "action_adventure"];
+    const staticSections  = ["popular", "new", "web_series", "romantic_drama", "anime_Series", "action", "action_adventure"];
     const dynamicContainer = document.getElementById("dynamic-sections");
 
     // --- Static Sections ---
@@ -55,7 +67,6 @@ function renderMainPage() {
 
         if (filteredMovies.length === 0) return;
 
-        // Get existing container or create new section dynamically
         let container = document.getElementById(section);
         if (!container && dynamicContainer) {
             const sectionDiv = document.createElement("div");
@@ -75,7 +86,7 @@ function renderMainPage() {
     });
 
     // --- Dynamic Sections ---
-    const allCategories = [...new Set(movies.map(m => m.category))];
+    const allCategories   = [...new Set(movies.map(m => m.category))];
     const extraCategories = allCategories.filter(c => !staticSections.includes(c));
 
     extraCategories.forEach(category => {
@@ -97,27 +108,23 @@ function renderMainPage() {
         filteredMovies.forEach(m => renderMovieCard(m, row));
     });
 
-    // --- Languages (limit) ---
+    // --- Languages (limit to 10 preview) ---
     const langContainer = document.getElementById("language-row");
     if (langContainer) {
-        const languages = [...new Set(movies.map(m => m.language))];
+        const languages        = [...new Set(movies.map(m => m.language))];
         const previewLanguages = languages.slice(0, 10);
 
+        // FIX: use createLangCard instead of duplicating DOM creation code
         previewLanguages.forEach(lang => {
-            const card = document.createElement("div");
-            card.className = "lang-card";
-            card.textContent = formatText(lang);
-            card.addEventListener("click", () => {
-                window.location.href = `language_page.html?language=${lang}`;
-            });
-            langContainer.appendChild(card);
+            langContainer.appendChild(createLangCard(lang, `language_page.html?language=${lang}`));
         });
 
-        //  Add See All link
+        // Add "See All" link if not already present
         const header = langContainer.parentElement.querySelector(".section-header");
         if (header && !header.querySelector(".see-all")) {
             const seeAllLink = document.createElement("a");
-            seeAllLink.href = "movies_category.html?category=languages";
+            // FIX: correct URL — language_page.html reads ?language=, not ?category=
+            seeAllLink.href = "language_page.html";
             seeAllLink.className = "see-all";
             seeAllLink.textContent = "See All";
             header.appendChild(seeAllLink);
@@ -125,12 +132,13 @@ function renderMainPage() {
     }
 }
 
+// ================= Render See-All / Category Page =================
 function renderSeeAllPage() {
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get("category");
-    const language = params.get("language");
+    const params    = new URLSearchParams(window.location.search);
+    const category  = params.get("category");
+    const language  = params.get("language");
     const container = document.getElementById("category-container");
-    const titleEl = document.getElementById("category-title");
+    const titleEl   = document.getElementById("category-title");
 
     if (!container || !titleEl) return;
 
@@ -148,7 +156,7 @@ function renderSeeAllPage() {
     } else if (category === "new") {
         const maxYear = Math.max(...movies.map(m => m.year));
         filteredMovies = movies.filter(m => m.year === maxYear);
-        titleEl.textContent = "New Releases ";
+        titleEl.textContent = "New Releases";
 
     } else if (category === "languages") {
         titleEl.textContent = "Languages";
@@ -157,21 +165,15 @@ function renderSeeAllPage() {
         const grid = document.createElement("div");
         grid.className = "language-grid";
 
+        // FIX: use createLangCard instead of duplicating DOM creation code
         languages.forEach(lang => {
-            const card = document.createElement("div");
-            card.className = "lang-card";
-            card.textContent = formatText(lang);
-            card.addEventListener("click", () => {
-                window.location.href = `language_page.html?language=${lang}`;
-            });
-            grid.appendChild(card);
+            grid.appendChild(createLangCard(lang, `language_page.html?language=${lang}`));
         });
 
         container.appendChild(grid);
         return;
-    }
 
-    else if (category) {
+    } else if (category) {
         filteredMovies = movies.filter(m => m.category === category)
             .sort((a, b) => b.year - a.year);
         titleEl.textContent = `${formatText(category)} Shows`;
@@ -180,13 +182,12 @@ function renderSeeAllPage() {
     filteredMovies.forEach(m => renderMovieCard(m, container));
 }
 
-
 // ================= Render Language Page =================
 function renderLanguagePage() {
-    const params = new URLSearchParams(window.location.search);
-    const language = params.get("language");
+    const params    = new URLSearchParams(window.location.search);
+    const language  = params.get("language");
     const container = document.getElementById("language-container");
-    const titleEl = document.getElementById("language-title");
+    const titleEl   = document.getElementById("language-title");
 
     if (!container || !titleEl) return;
 
@@ -197,17 +198,13 @@ function renderLanguagePage() {
         const row = document.createElement("div");
         row.className = "language-grid";
 
+        // FIX: use createLangCard instead of duplicating DOM creation code
         languages.forEach(lang => {
-            const card = document.createElement("div");
-            card.className = "lang-card";
-            card.textContent = formatText(lang);
-            card.addEventListener("click", () => {
-                window.location.href = `language_page.html?language=${lang}`;
-            });
-            row.appendChild(card);
+            row.appendChild(createLangCard(lang, `language_page.html?language=${lang}`));
         });
 
         container.appendChild(row);
+
     } else {
         titleEl.textContent = `${formatText(language)} Content`;
 
@@ -246,14 +243,15 @@ document.addEventListener("DOMContentLoaded", () => {
 // ================= Dynamic Sidenav =================
 function renderSidenav() {
     const sidenavLinks = document.getElementById("sidenav-links");
+    if (!sidenavLinks) return;
     sidenavLinks.innerHTML = "";
 
     const permanent = [
-        { name: "Home", url: "movie_main.html" },
-        { name: "Popular", url: "movies_category.html?category=popular" },
+        { name: "Home",         url: "movie_main.html" },
+        { name: "Popular",      url: "movies_category.html?category=popular" },
         { name: "New Releases", url: "movies_category.html?category=new" },
-        { name: "Languages", url: "language_page.html" }
-
+        { name: "Languages",    url: "language_page.html" },
+        { name: "Profile",      url: "profile.html" },
     ];
 
     permanent.forEach(link => {
@@ -263,13 +261,12 @@ function renderSidenav() {
         sidenavLinks.appendChild(a);
     });
 
-    const staticSections = ["popular", "new", "languages"];
-    const allCategories = [...new Set(movies.map(m => m.category))];
+    const staticSections    = ["popular", "new", "languages"];
+    const allCategories     = [...new Set(movies.map(m => m.category))];
     const dynamicCategories = allCategories.filter(c => !staticSections.includes(c));
 
     if (dynamicCategories.length > 0) {
-        const divider = document.createElement("hr");
-        sidenavLinks.appendChild(divider);
+        sidenavLinks.appendChild(document.createElement("hr"));
 
         dynamicCategories.forEach(cat => {
             const a = document.createElement("a");
@@ -279,8 +276,7 @@ function renderSidenav() {
         });
     }
 
-    const logoutDivider = document.createElement("hr");
-    sidenavLinks.appendChild(logoutDivider);
+    sidenavLinks.appendChild(document.createElement("hr"));
 
     const logoutLink = document.createElement("a");
     logoutLink.href = "/index.html";
@@ -293,52 +289,54 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ================= Movie Play Page =================
-const movie = JSON.parse(localStorage.getItem("selectedMovie"));
-if (movie) {
-    const titleEl = document.getElementById("movie-title");
-    const typeYearEl = document.getElementById("movie-type-year");
-    const descEl = document.getElementById("movie-description");
-    const videoEl = document.getElementById("movie-video");
+// FIX: was running at top-level — race condition where DOM & movies weren't ready yet.
+//      Now correctly wrapped in DOMContentLoaded.
+document.addEventListener("DOMContentLoaded", () => {
+    const movie = JSON.parse(localStorage.getItem("selectedMovie"));
+    if (movie) {
+        const titleEl   = document.getElementById("movie-title");
+        const typeYearEl = document.getElementById("movie-type-year");
+        const descEl    = document.getElementById("movie-description");
+        const videoEl   = document.getElementById("movie-video");
 
-    if (titleEl) titleEl.textContent = movie.title;
+        if (titleEl)    titleEl.textContent = movie.title;
+        if (typeYearEl) typeYearEl.textContent =
+            `${formatText(movie.category)} · ${formatText(movie.language)} · Rating: ${movie.rating} · Released in ${movie.year}.`;
+        if (descEl)     descEl.textContent = movie.description;
+        if (videoEl)    videoEl.src = movie.link + "?autoplay=1&rel=0";
 
-    if (typeYearEl) {
-        typeYearEl.textContent = `${formatText(movie.category)} · ${formatText(movie.language)} · Rating: ${movie.rating} · Released in ${movie.year}.`;
-    }
+        const relatedContainer = document.getElementById("related-movies");
+        if (relatedContainer) {
+            const relatedMovies = movies
+                .filter(m => m.category === movie.category && m.title !== movie.title)
+                .sort((a, b) => b.year - a.year)
+                .slice(0, 10);
 
-    if (descEl) descEl.textContent = movie.description;
-    if (videoEl) videoEl.src = movie.link + "?autoplay=1&rel=0";
-    const relatedContainer = document.getElementById("related-movies");
-    if (relatedContainer) {
-        const relatedMovies = movies
-            .filter(m => m.category === movie.category && m.title !== movie.title)
-            .sort((a, b) => b.year - a.year)
-            .slice(0, 10);
-
-        if (relatedMovies.length > 0) {
-            relatedMovies.forEach(m => renderMovieCard(m, relatedContainer));
-        } else {
-            relatedContainer.innerHTML = "<p>No related movies found.</p>";
+            if (relatedMovies.length > 0) {
+                relatedMovies.forEach(m => renderMovieCard(m, relatedContainer));
+            } else {
+                relatedContainer.innerHTML = "<p>No related movies found.</p>";
+            }
         }
+    } else {
+        const playContainer = document.querySelector(".movie-play.container");
+        if (playContainer) playContainer.innerHTML = "<p>Movie not found.</p>";
     }
-} else {
-    const playContainer = document.querySelector(".movie-play.container");
-    if (playContainer) playContainer.innerHTML = "<p>Movie not found.</p>";
-}
+});
 
 // ================= Hero Slider =================
 document.addEventListener("DOMContentLoaded", () => {
-    const heroSlider = document.getElementById("hero-slider");
+    const heroSlider          = document.getElementById("hero-slider");
     const thumbnailsContainer = document.getElementById("hero-thumbnails");
 
     if (!heroSlider || !thumbnailsContainer) return;
 
     let currentSlide = 0;
-    const TRANS_MS = 800;
-    let isAnimating = false;
-    let isInfoOpen = false;
+    const TRANS_MS   = 800;
+    let isAnimating  = false;
+    let isInfoOpen   = false;
 
-    const maxYear = Math.max(...movies.map(m => m.year));
+    const maxYear    = Math.max(...movies.map(m => m.year));
     const heroMovies = movies.filter(m => m.year === maxYear);
 
     heroMovies.forEach((movie, index) => {
@@ -364,24 +362,22 @@ document.addEventListener("DOMContentLoaded", () => {
         heroSlider.insertBefore(slide, thumbnailsContainer);
 
         const thumb = document.createElement("img");
-        thumb.src = movie.image;
-        thumb.alt = movie.title;
+        thumb.src  = movie.image;
+        thumb.alt  = movie.title;
         if (index === 0) thumb.classList.add("active");
         thumb.addEventListener("click", () => {
             if (!isInfoOpen) showSlide(index);
         });
         thumbnailsContainer.appendChild(thumb);
 
-        const playBtn = slide.querySelector(".thumb-play-btn");
-        playBtn.addEventListener("click", (e) => {
+        slide.querySelector(".thumb-play-btn").addEventListener("click", (e) => {
             e.stopPropagation();
             localStorage.setItem("selectedMovie", JSON.stringify(movie));
             window.location.href = "movie_play.html";
         });
 
-        // More Info toggle
         const infoBtn = slide.querySelector(".info-btn");
-        const desc = slide.querySelector("p");
+        const desc    = slide.querySelector("p");
         infoBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             desc.classList.toggle("expanded");
@@ -400,39 +396,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     slides.forEach((s, i) => {
         s.style.transition = "none";
-        s.style.left = (i === 0 ? "0%" : "100%");
+        s.style.left = i === 0 ? "0%" : "100%";
         s.classList.toggle("visible", i === 0);
-        s.getBoundingClientRect();
+        s.getBoundingClientRect(); // force reflow
         s.style.transition = "";
     });
 
     function showSlide(index) {
-        if (index === currentSlide || isAnimating || isInfoOpen) return; // <-- Block when info open
+        if (index === currentSlide || isAnimating || isInfoOpen) return;
         isAnimating = true;
 
-        const old = slides[currentSlide];
+        const old  = slides[currentSlide];
         const next = slides[index];
+        const transStr = `left ${TRANS_MS}ms ease-in-out`;
 
         next.style.transition = "none";
         next.style.left = "100%";
         next.classList.remove("visible");
         next.getBoundingClientRect();
-        const transStr = `left ${TRANS_MS}ms ease-in-out`;
-        old.style.transition = transStr;
+
+        old.style.transition  = transStr;
         next.style.transition = transStr;
 
         old.classList.remove("visible");
         old.classList.add("moving-out");
-        old.style.zIndex = 2;
+        old.style.zIndex  = 2;
         next.style.zIndex = 3;
 
         requestAnimationFrame(() => {
-            old.style.left = "-100%";
+            old.style.left  = "-100%";
             next.style.left = "0%";
         });
 
         if (thumbs[currentSlide]) thumbs[currentSlide].classList.remove("active");
-        if (thumbs[index]) thumbs[index].classList.add("active");
+        if (thumbs[index])        thumbs[index].classList.add("active");
 
         setTimeout(() => {
             old.style.transition = "none";
@@ -458,11 +455,9 @@ document.addEventListener("DOMContentLoaded", () => {
         currentSlide = index;
     }
 
-    // Auto-play (stops when info open)
+    // Auto-play — pauses while info panel is open
     setInterval(() => {
-        if (isAnimating || isInfoOpen) return;  // <-- Block autoplay
-        let next = (currentSlide + 1) % slides.length;
-        showSlide(next);
+        if (isAnimating || isInfoOpen) return;
+        showSlide((currentSlide + 1) % slides.length);
     }, 5000);
 });
-

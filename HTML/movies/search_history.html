@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search History — ReelRhythm</title>
+    <link rel="stylesheet" href="/CSS/stylesheet.css">
+    <link rel="stylesheet" href="/CSS/movie-stylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!--
+        FIX: Scripts removed from <head> — they were running before the DOM existed.
+             Moved to end of <body> so all elements are ready when scripts execute.
+    -->
+</head>
+
+<body>
+    <div class="ReelRhythm-category">
+        <div class="navbar">
+            <span class="user-icon" onclick="openSidenav()">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </span>
+            <div class="search">
+                <form class="search-container" role="search" id="search-form">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search for a movie..."
+                        aria-label="Search for a movie" />
+                    <button type="submit" class="search-button">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+            </div>
+            <div id="navtitle">
+                <h2 class="title">ReelRhythm</h2>
+            </div>
+        </div>
+
+        <div id="sidenav" class="sidenav">
+            <span class="closebtn" onclick="closeSidenav()">
+                <i class="fa-regular fa-circle-xmark"></i>
+            </span>
+            <div id="sidenav-links"></div>
+        </div>
+        <div id="overlay" class="overlay" onclick="closeSidenav()"></div>
+    </div>
+
+    <div id="main" class="movie-container">
+        <div class="nav-buttons">
+            <button class="btn-bn btn-left" onclick="goBack()">
+                <i class="fa-solid fa-circle-chevron-left"></i>
+            </button>
+        </div>
+
+        <div class="history-page">
+            <div class="hp-header">
+                <h1 class="hp-title">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Search History
+                    <span class="hp-count" id="hp-count">0</span>
+                </h1>
+                <button class="btn-clear-all" id="btn-clear-all" onclick="askClear()">
+                    <i class="fa-solid fa-trash"></i>
+                    Clear All
+                </button>
+            </div>
+
+            <div class="confirm-banner" id="confirm-banner">
+                <p>Clear all search history? This cannot be undone.</p>
+                <div class="confirm-actions">
+                    <button class="btn-yes" onclick="doClear()">Yes, Clear</button>
+                    <button class="btn-no" onclick="cancelClear()">Cancel</button>
+                </div>
+            </div>
+
+            <ul class="history-list" id="history-list"></ul>
+        </div>
+    </div>
+
+    <!--
+        FIX: Correct load order — movie_data.js first (defines `movies`),
+             then script.js (utilities + sidenav listeners),
+             then js1.js (UI rendering that depends on both).
+        FIX: Scripts at end of body so DOM is fully parsed before any code runs.
+    -->
+    <script src="/JavaScript/movie_data.js"></script>
+    <script src="/JavaScript/script.js"></script>
+    <script src="/JavaScript/js1.js"></script>
+
+    <script>
+        const HISTORY_KEY = "rr_search_history";
+        const getHistory = () => JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        const saveHistory = arr => localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+
+        function renderPage() {
+            const history = getHistory();
+            const list = document.getElementById("history-list");
+            const count = document.getElementById("hp-count");
+            const clearBtn = document.getElementById("btn-clear-all");
+
+            count.textContent = history.length;
+            clearBtn.disabled = history.length === 0;
+            list.innerHTML = "";
+
+            if (history.length === 0) {
+                list.innerHTML = `
+                    <div class="history-empty">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <p>No search history yet.</p>
+                        <a href="movie_main.html" class="go-home-btn">
+                            <i class="fa-solid fa-house"></i> Go to Home
+                        </a>
+                    </div>`;
+                return;
+            }
+
+            history.forEach((query, i) => {
+                const li = document.createElement("li");
+                li.className = "hi-item";
+                li.style.animationDelay = `${i * 35}ms`;
+                li.innerHTML = `
+                    <span class="hi-num">${i + 1}</span>
+                    <span class="hi-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <span class="hi-text">${query}</span>
+                    <i class="fa-solid fa-arrow-right hi-arrow"></i>
+                    <button class="hi-del" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+                `;
+
+                li.addEventListener("click", (e) => {
+                    if (e.target.closest(".hi-del")) return;
+                    window.location.href = `movie_main.html?search=${encodeURIComponent(query)}`;
+                });
+
+                li.querySelector(".hi-del").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    saveHistory(getHistory().filter(q => q !== query));
+                    renderPage();
+                });
+
+                list.appendChild(li);
+            });
+        }
+
+        const askClear = () => document.getElementById("confirm-banner").classList.add("show");
+        const cancelClear = () => document.getElementById("confirm-banner").classList.remove("show");
+
+        function doClear() {
+            localStorage.removeItem(HISTORY_KEY);
+            document.getElementById("confirm-banner").classList.remove("show");
+            renderPage();
+        }
+
+        document.addEventListener("DOMContentLoaded", renderPage);
+    </script>
+</body>
+
+</html>

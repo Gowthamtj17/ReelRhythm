@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — ReelRhythm</title>
+    <link rel="stylesheet" href="/CSS/stylesheet.css">
+    <link rel="stylesheet" href="/CSS/movie-stylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <!-- Navbar -->
+    <div class="ReelRhythm-category">
+        <div class="navbar">
+            <span class="user-icon" onclick="openSidenav()">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </span>
+            <div class="search">
+                <form class="search-container" role="search" id="search-form">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search for a movie..."
+                        aria-label="Search for a movie" />
+                    <button type="submit" class="search-button">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+            </div>
+            <div id="navtitle">
+                <h2 class="title">ReelRhythm</h2>
+            </div>
+        </div>
+        <div id="sidenav" class="sidenav">
+            <span class="closebtn" onclick="closeSidenav()">
+                <i class="fa-regular fa-circle-xmark"></i>
+            </span>
+            <div id="sidenav-links"></div>
+        </div>
+        <div id="overlay" class="overlay" onclick="closeSidenav()"></div>
+    </div>
+
+    <!-- Main -->
+    <div id="main" class="movie-container">
+        <div class="nav-buttons">
+            <button class="btn-bn btn-left" onclick="goBack()">
+                <i class="fa-solid fa-circle-chevron-left"></i>
+            </button>
+        </div>
+
+        <div class="profile-page" id="profile-page">
+            
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fa-solid fa-user-pen"></i> Edit Profile</h2>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchTab('info', this)">
+                    <i class="fa-solid fa-user"></i> Info
+                </button>
+                <button class="modal-tab" onclick="switchTab('password', this)">
+                    <i class="fa-solid fa-lock"></i> Password
+                </button>
+            </div>
+
+            <!-- Info Tab -->
+            <div id="tab-info">
+                <div id="info-error" class="modal-error"></div>
+                <div id="info-success" class="modal-success"></div>
+                <div class="field-group">
+                    <label class="field-label">Full Name</label>
+                    <input class="field-input" id="edit-name" type="text" placeholder="Your name" />
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Username</label>
+                    <input class="field-input" id="edit-username" type="text" disabled />
+                    <p class="field-hint">Username cannot be changed.</p>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Email</label>
+                    <input class="field-input" id="edit-email" type="email" placeholder="your@email.com" />
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Phone</label>
+                    <input class="field-input" id="edit-phone" type="tel" placeholder="10-digit number" />
+                </div>
+                <button class="btn-save" onclick="saveInfo()">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
+            </div>
+
+            <!-- Password Tab -->
+            <div id="tab-password" style="display:none;">
+                <div id="pw-error" class="modal-error"></div>
+                <div id="pw-success" class="modal-success"></div>
+                <div class="field-group">
+                    <label class="field-label">Current Password</label>
+                    <input class="field-input" id="pw-current" type="password" placeholder="Enter current password" />
+                </div>
+                <div class="field-group">
+                    <label class="field-label">New Password</label>
+                    <input class="field-input" id="pw-new" type="password"
+                        placeholder="Min 6 chars, upper+lower+num+special" />
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Confirm New Password</label>
+                    <input class="field-input" id="pw-confirm" type="password" placeholder="Re-enter new password" />
+                </div>
+                <button class="btn-save" onclick="savePassword()">
+                    <i class="fa-solid fa-key"></i> Change Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+   
+    <script src="/JavaScript/movie_data.js"></script>
+    <script src="/JavaScript/script.js"></script>
+    <script src="/JavaScript/js1.js"></script>
+
+    <script>
+        // ── Constants ──
+        const HISTORY_KEY = "rr_search_history";
+        const CURRENT_USER_KEY = "rr_current_user";
+        const PROFILE_HISTORY_LIMIT = 5; // show 5 here, rest on history page
+
+        // ── Local helpers (getHistory/saveHistory are page-scoped) ──
+        // getAllUsers, STRONG_PASSWORD_RE come from script.js loaded above
+        const getHistory = () => JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        const saveHistory = arr => localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+
+        function getCurrentUser() {
+            const username = localStorage.getItem(CURRENT_USER_KEY);
+            const users = getAllUsers();
+            if (username) {
+                const found = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+                if (found) return found;
+            }
+            // Fallback: single-user accounts (handles sessions created before login fix)
+            if (users.length === 1) {
+                localStorage.setItem(CURRENT_USER_KEY, users[0].username);
+                return users[0];
+            }
+            return null;
+        }
+
+        function saveUpdatedUser(updated) {
+            const users = getAllUsers();
+            const idx = users.findIndex(u => u.username.toLowerCase() === updated.username.toLowerCase());
+            if (idx !== -1) {
+                users[idx] = updated;
+                localStorage.setItem("rr_users", JSON.stringify(users));
+            }
+        }
+
+        function initials(name) {
+            return name.trim().split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+        }
+
+        // ── Stats calculation ──
+        function calcStats(history) {
+            const total = history.length;
+            const freq = {};
+            history.forEach(q => { freq[q] = (freq[q] || 0) + 1; });
+            const topQuery = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+            let favCat = null;
+            try {
+                if (typeof movies !== "undefined" && movies.length) {
+                    const catCount = {};
+                    history.forEach(q => {
+                        movies.filter(m =>
+                            m.title.toLowerCase().includes(q) ||
+                            m.category.toLowerCase().includes(q)
+                        ).forEach(m => { catCount[m.category] = (catCount[m.category] || 0) + 1; });
+                    });
+                    favCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+                }
+            } catch (e) { favCat = null; }
+
+            return { total, topQuery, favCat };
+        }
+
+        // ── Render full profile page ──
+        function renderProfile() {
+            const user = getCurrentUser();
+            const page = document.getElementById("profile-page");
+            const history = getHistory();
+            const stats = calcStats(history);
+
+            if (!user) {
+                page.innerHTML = `
+                <div style="text-align:center;padding:80px 20px;color:#666;">
+                    <i class="fa-solid fa-user-slash" style="font-size:3rem;color:#333;display:block;margin-bottom:16px;"></i>
+                    <p style="font-size:1rem;">You are not logged in.</p>
+                    <a href="/index.html" style="color:var(--primary-accent);font-weight:700;text-decoration:none;">
+                        <i class="fa-solid fa-arrow-right"></i> Go to Login
+                    </a>
+                </div>`;
+                return;
+            }
+
+            page.innerHTML = `
+            <!-- Hero Card -->
+            <div class="profile-hero">
+                <div class="avatar-wrap">
+                    <div class="avatar">${initials(user.name)}</div>
+                    <div class="avatar-badge"></div>
+                </div>
+                <div class="hero-info">
+                    <h1 class="hero-name">${user.name}</h1>
+                    <p class="hero-username">@${user.username}</p>
+                    <div class="hero-meta">
+                        <span><i class="fa-solid fa-envelope"></i>${user.email}</span>
+                        <span><i class="fa-solid fa-phone"></i>${user.phone}</span>
+                    </div>
+                </div>
+                <button class="btn-edit-profile" onclick="openModal()">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </button>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-num">${stats.total}</div>
+                    <div class="stat-label">Total Searches</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" style="font-size:${stats.total > 0 ? '1.1rem' : '1.8rem'};word-break:break-word;">
+                        ${stats.topQuery !== "—" ? stats.topQuery : "—"}
+                    </div>
+                    <div class="stat-label">Top Search</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" style="font-size:${stats.favCat ? '1rem' : '1.8rem'};text-transform:capitalize;word-break:break-word;">
+                        ${stats.favCat ? stats.favCat.replace(/_/g, " ") : "—"}
+                    </div>
+                    <div class="stat-label">Fav Genre</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">${history.length > 0 ? Math.min(history.length, 10) : 0}</div>
+                    <div class="stat-label">Saved Queries</div>
+                </div>
+            </div>
+
+            <!-- Search History Section -->
+            <div class="section-card">
+                <div class="sc-header">
+                    <h2 class="sc-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        Search History
+                    </h2>
+                    <span style="font-size:0.78rem;color:#888;background:#222;padding:3px 10px;border-radius:20px;">
+                        ${history.length} searches
+                    </span>
+                </div>
+                <div class="sc-body">
+                    <div id="profile-history-content"></div>
+                    <div id="confirm-strip-sh" class="confirm-strip">
+                        <p>Clear all search history? This cannot be undone.</p>
+                        <div class="confirm-strip-btns">
+                            <button class="btn-cs-yes" onclick="doHistoryClear()">Yes, Clear</button>
+                            <button class="btn-cs-no" onclick="document.getElementById('confirm-strip-sh').classList.remove('show')">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="sh-actions">
+                        <a href="search_history.html" class="btn-view-all">
+                            <i class="fa-solid fa-list"></i> View All
+                        </a>
+                        <button class="btn-clear-sh" id="btn-clr-sh" onclick="askHistoryClear()" ${history.length === 0 ? 'disabled' : ''}>
+                            <i class="fa-solid fa-trash"></i> Clear History
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Info Section -->
+            <div class="section-card">
+                <div class="sc-header">
+                    <h2 class="sc-title"><i class="fa-solid fa-circle-user"></i> Account Details</h2>
+                </div>
+                <div class="sc-body">
+                    <div class="account-list">
+                        ${[
+                    { icon: "fa-user", label: "Full Name", val: user.name },
+                    { icon: "fa-at", label: "Username", val: "@" + user.username },
+                    { icon: "fa-envelope", label: "Email", val: user.email },
+                    { icon: "fa-phone", label: "Phone", val: user.phone },
+                ].map(r => `
+                            <div class="acc-row">
+                                <div class="acc-left">
+                                    <div class="acc-icon"><i class="fa-solid ${r.icon}"></i></div>
+                                    <div class="acc-info">
+                                        <div class="acc-label">${r.label}</div>
+                                        <div class="acc-value">${r.val}</div>
+                                    </div>
+                                </div>
+                            </div>`).join("")}
+                    </div>
+                    <button class="btn-logout" onclick="logout()">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+        `;
+
+            renderHistoryList();
+        }
+
+        // ── Render history list inside profile ──
+        function renderHistoryList() {
+            const container = document.getElementById("profile-history-content");
+            if (!container) return;
+
+            const history = getHistory();
+
+            if (history.length === 0) {
+                container.innerHTML = `
+                <div class="sh-empty">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    No search history yet. Start searching movies!
+                </div>`;
+                const clrBtn = document.getElementById("btn-clr-sh");
+                if (clrBtn) clrBtn.disabled = true;
+                return;
+            }
+
+            const shown = history.slice(0, PROFILE_HISTORY_LIMIT);
+            const hasMore = history.length > PROFILE_HISTORY_LIMIT;
+            const ul = document.createElement("ul");
+            ul.className = "profile-history-list";
+
+            shown.forEach((query, i) => {
+                const li = document.createElement("li");
+                li.className = "phi-item";
+                li.style.animationDelay = `${i * 30}ms`;
+                li.innerHTML = `
+                <span class="phi-num">${i + 1}</span>
+                <span class="phi-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <span class="phi-text">${query}</span>
+                <i class="fa-solid fa-arrow-right phi-arrow"></i>
+                <button class="phi-del" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+            `;
+                li.addEventListener("click", (e) => {
+                    if (e.target.closest(".phi-del")) return;
+                    window.location.href = `movie_main.html?search=${encodeURIComponent(query)}`;
+                });
+                li.querySelector(".phi-del").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    saveHistory(getHistory().filter(q => q !== query));
+                    renderHistoryList();
+                });
+                ul.appendChild(li);
+            });
+
+            container.innerHTML = "";
+            container.appendChild(ul);
+
+            if (hasMore) {
+                const more = document.createElement("p");
+                more.style.cssText = "text-align:center;font-size:0.78rem;color:#888;margin:10px 0 0;";
+                more.innerHTML = `+${history.length - PROFILE_HISTORY_LIMIT} more — <a href="search_history.html" style="color:var(--primary-accent);font-weight:600;">View all</a>`;
+                container.appendChild(more);
+            }
+        }
+
+        function askHistoryClear() {
+            document.getElementById("confirm-strip-sh").classList.add("show");
+        }
+
+        function doHistoryClear() {
+            localStorage.removeItem(HISTORY_KEY);
+            document.getElementById("confirm-strip-sh").classList.remove("show");
+            renderHistoryList();
+            const clrBtn = document.getElementById("btn-clr-sh");
+            if (clrBtn) clrBtn.disabled = true;
+        }
+
+        // ── Edit Modal ──
+        function openModal() {
+            const user = getCurrentUser();
+            if (!user) return;
+            document.getElementById("edit-name").value = user.name;
+            document.getElementById("edit-username").value = user.username;
+            document.getElementById("edit-email").value = user.email;
+            document.getElementById("edit-phone").value = user.phone;
+            ["pw-current", "pw-new", "pw-confirm"].forEach(id => document.getElementById(id).value = "");
+            hideMsg("info-error"); hideMsg("info-success");
+            hideMsg("pw-error"); hideMsg("pw-success");
+            switchTab("info", document.querySelector(".modal-tab"));
+            document.getElementById("edit-modal").classList.add("show");
+        }
+
+        function closeModal() {
+            document.getElementById("edit-modal").classList.remove("show");
+        }
+
+        function switchTab(tab, btn) {
+            document.getElementById("tab-info").style.display = tab === "info" ? "block" : "none";
+            document.getElementById("tab-password").style.display = tab === "password" ? "block" : "none";
+            document.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
+            btn.classList.add("active");
+        }
+
+        function showMsg(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.add("show"); }
+        function hideMsg(id) { const el = document.getElementById(id); el.textContent = ""; el.classList.remove("show"); }
+
+        function saveInfo() {
+            hideMsg("info-error"); hideMsg("info-success");
+            const user = getCurrentUser();
+            const name = document.getElementById("edit-name").value.trim();
+            const email = document.getElementById("edit-email").value.trim();
+            const phone = document.getElementById("edit-phone").value.trim();
+
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!name) return showMsg("info-error", "Name cannot be empty.");
+            if (!emailRe.test(email)) return showMsg("info-error", "Invalid email address.");
+
+            let cleaned = phone.replace(/[\s\-()]/g, "");
+            if (cleaned.startsWith("+91")) cleaned = cleaned.slice(3);
+            else if (cleaned.startsWith("91")) cleaned = cleaned.slice(2);
+            if (!/^[6-9]\d{9}$/.test(cleaned)) return showMsg("info-error", "Invalid phone number.");
+
+            const users = getAllUsers(); // from script.js
+            const conflict = users.find(u =>
+                u.username.toLowerCase() !== user.username.toLowerCase() &&
+                (u.email.toLowerCase() === email.toLowerCase() || u.phone === cleaned)
+            );
+            if (conflict) return showMsg("info-error", "Email or phone already used by another account.");
+
+            saveUpdatedUser({ ...user, name, email, phone: cleaned });
+            showMsg("info-success", "✅ Profile updated successfully!");
+            setTimeout(() => { closeModal(); renderProfile(); }, 1200);
+        }
+
+        function savePassword() {
+            hideMsg("pw-error"); hideMsg("pw-success");
+            const user = getCurrentUser();
+            const current = document.getElementById("pw-current").value;
+            const newPw = document.getElementById("pw-new").value;
+            const confirm = document.getElementById("pw-confirm").value;
+
+            if (!current) return showMsg("pw-error", "Enter your current password.");
+            if (user.password !== current) return showMsg("pw-error", "Current password is incorrect.");
+
+            // STRONG_PASSWORD_RE is defined in script.js, loaded before this inline script
+            if (!STRONG_PASSWORD_RE.test(newPw)) return showMsg("pw-error", "Password must be 6+ chars with upper, lower, number & special char.");
+            if (newPw !== confirm) return showMsg("pw-error", "Passwords do not match.");
+
+            saveUpdatedUser({ ...user, password: newPw });
+            showMsg("pw-success", "✅ Password changed successfully!");
+            setTimeout(() => { closeModal(); }, 1200);
+        }
+
+        // ── Logout ──
+        function logout() {
+            localStorage.removeItem(CURRENT_USER_KEY);
+            window.location.href = "/index.html";
+        }
+
+        // Close modal when clicking the overlay background
+        document.getElementById("edit-modal").addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        document.addEventListener("DOMContentLoaded", renderProfile);
+    </script>
+</body>
+
+</html>

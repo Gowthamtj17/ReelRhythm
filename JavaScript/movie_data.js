@@ -173,17 +173,6 @@ const movies = [
     },
 
     {
-        title: "Good Bad Ugly",
-        image: "https://img.youtube.com/vi/c9zWcnNR2q0/maxresdefault.jpg",
-        category: "action",
-        language: "tamil",
-        type: "movie",
-        year: 2025,
-        rating: 4.7,
-        link: "https://www.youtube.com/embed/c9zWcnNR2q0",
-        description: "Ajith Kumar stars in 'Good Bad Ugly', an action thriller that promises intense sequences and a gripping storyline. The trailer teases high-octane action and suspense, setting high expectations for the film's release."
-    },
-    {
         title: "Phoenix",
         image: "https://img.youtube.com/vi/P1BMIo38Tu0/maxresdefault.jpg",
         category: "action",
