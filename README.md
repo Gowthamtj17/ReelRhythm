@@ -93,31 +93,4 @@ Movies are presented with high-quality visuals, and video playback is integrated
 <h2>🙌 Acknowledgements</h2>
 
 1) Video playback powered by YouTube embed integration
-
-<h3>🛠️ Tech Stack</h3>
-
-| Technology               | Purpose                             |
-| ------------------------ | ----------------------------------- |
-| **HTML5**                | Page structure and layout           |
-| **CSS3**                 | Styling, responsiveness, animations |
-| **JavaScript (Vanilla)** | UI interactions and video handling  |
-| **Netlify**              | Deployment and hosting              |
-
-
-<h3>🚧 Future Enhancements</h3>
-
-1) Search and filter functionality
-
-2) User playlists or watchlist
-
-3) Dark/Light theme support
-
-
-<h3>🔗 Live Demo</h3>
-
-    https://reelrhythm.netlify.app
-
-<h3>🙌 Acknowledgements</h3>
-     
-  1) Video playback powered by YouTube embed integration
-
+2) 
