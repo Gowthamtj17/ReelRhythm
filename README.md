@@ -21,6 +21,30 @@ Movies are presented with high-quality visuals, and video playback is integrated
 
 3) Designed to simulate OTT-style interaction flows
 
+<h3>🔍 Search & Filter Functionality</h3>
+
+1) Real-time search to quickly find movies by title or genre
+
+2) Filtered results update dynamically as you type
+
+3) Intuitive and responsive search bar integrated into the main UI
+
+<h3>👤 User Profile</h3>
+
+1) Personalized user profile section
+
+2) Displays user details and activity overview
+
+3) Foundation for future watchlist and preference features
+
+<h3>🕓 Search History</h3>
+
+1) Automatically tracks and displays recent searches
+
+2) Quick access to previously searched titles
+
+3) Enhances discoverability and user convenience
+
 <h3>📱 Fully Responsive Design</h3>
 
 1) Built with a mobile-first approach
@@ -44,6 +68,31 @@ Movies are presented with high-quality visuals, and video playback is integrated
 2) Instant load speeds
 
 3) Automatic HTTPS and continuous deployment
+
+<h2>🛠️ Tech Stack</h2>
+
+| Technology               | Purpose                                        |
+| ------------------------ | ---------------------------------------------- |
+| **HTML5**                | Page structure and layout                      |
+| **CSS3**                 | Styling, responsiveness, animations            |
+| **JavaScript (Vanilla)** | UI interactions, search, and video handling    |
+| **Netlify**              | Deployment and hosting                         |
+
+<h2>🚧 Future Enhancements</h2>
+
+1) User playlists or watchlist
+
+2) Dark/Light theme support
+
+3) Backend integration for persistent user data
+
+<h2>🔗 Live Demo</h2>
+
+    https://reelrhythm.netlify.app
+
+<h2>🙌 Acknowledgements</h2>
+
+1) Video playback powered by YouTube embed integration
 
 <h3>🛠️ Tech Stack</h3>
 
